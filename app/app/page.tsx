@@ -22,15 +22,18 @@ export default function App() {
   const { filters, setFilters } = useActivityFiltersStore()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const limit = 10
+  const [page, setPage] = useState(1)
+  const [endPage, setEndPage] = useState(10)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  const getActivities = async () => {
+  const onCountAvtivities = async () => {
     try {
-      const res = await fetch('/api/get-activities', {
+      const res = await fetch('/api/count-activities', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ page: 1, limit: 10 })
+        }
       })
 
       if (!res.ok) {
@@ -40,12 +43,51 @@ export default function App() {
       }
 
       const data = await res.json()
-      setActivities(data.activities)
-      setActivitiesLoaded(true)
+      setEndPage(Math.ceil(data.count / limit))
     } catch (error) {
       console.error('Error fetching activities:', error)
       addToast('Error fetching activities')
     }
+  }
+
+  const getActivities = async (page: number): Promise<App.Activity[]> => {
+    try {
+      const res = await fetch('/api/get-activities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ page, limit })
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        addToast(data?.error ?? 'Something went wrong.')
+        return []
+      }
+
+      const data = await res.json()
+      return data.activities
+    } catch (error) {
+      console.error('Error fetching activities:', error)
+      addToast('Error fetching activities')
+      return []
+    }
+  }
+
+  const initActivity = async () => {
+    const activities = await getActivities(page)
+    setActivities(activities)
+    setActivitiesLoaded(true)
+  }
+
+  const onLoadMore = async () => {
+    setIsLoadingMore(true)
+    const nextPage = page + 1
+    setPage(nextPage)
+    const moreActivities = await getActivities(nextPage)
+    setActivities([...activities, ...moreActivities])
+    setIsLoadingMore(false)
   }
 
   const formatted = (iso: string) =>
@@ -94,7 +136,8 @@ export default function App() {
     const today = formatDate(new Date())
     setFrom(today)
     setTo(today)
-    getActivities()
+    onCountAvtivities()
+    initActivity()
   }, [])
   return (
     <div>
@@ -242,6 +285,15 @@ export default function App() {
                   </li>
                 ))
               )}
+              <li className="list-row rounded-none">
+                <div></div>
+                <div className="flex justify-center">
+                  <button className="btn" type="button" onClick={onLoadMore} disabled={page >= endPage || isLoadingMore}>
+                    {isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${page >= endPage ? 'All data loaded' : 'Load more'}`}</span>}
+                  </button>
+                </div>
+                <div></div>
+              </li>
             </ul>
           ) : (
             <ul className="list bg-base-100">

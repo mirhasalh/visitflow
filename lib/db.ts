@@ -113,6 +113,7 @@ export const getActivities = async (userId: string, page: number, limit: number)
   return db
     .collection('activities')
     .find({ userId: new ObjectId(userId) })
+    .sort({ visitDate: 1, _id: 1 })
     .skip((page - 1) * limit)
     .limit(limit)
     .toArray()
@@ -163,4 +164,9 @@ export const filterActivities = async (userId: string, filters: App.ActivityFilt
     total,
     totalPages: Math.ceil(total / limit)
   }
+}
+
+export const countActivities = async (userId: string) => {
+  const db = await getDb()
+  return db.collection('activities').countDocuments({ userId: new ObjectId(userId) })
 }
