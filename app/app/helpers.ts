@@ -73,3 +73,25 @@ export const fetchSearchActivities = async ({ filters, from, to, onError, onValu
     onError('Error filtering activities')
   }
 }
+
+export const fetchUpdateActivityStatus = async (activityId: string, status: string, onError: OnError, onValue: (value: any) => void): Promise<void> => {
+  try {
+    const res = await fetch('/api/update-activity-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activityId, status })
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      onError(data?.error ?? 'Something went wrong.')
+      return
+    }
+
+    const data = await res.json()
+    onValue(data)
+  } catch (error) {
+    console.error('Error updating activity status:', error)
+    onError('Error updating activity status')
+  }
+}

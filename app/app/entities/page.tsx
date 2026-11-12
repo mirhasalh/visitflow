@@ -33,9 +33,7 @@ export default function Entities() {
     setEntitiesLoaded(true)
   }
 
-  const onOpenMenu = () => {
-    addToast('Under development')
-  }
+  const onOpenMenu = () => addToast('Under development.')
 
   useEffect(() => {
     getEntities()

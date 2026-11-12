@@ -72,7 +72,7 @@ export default function AddActivity() {
     const salesName = formData.get('salesName') as string
 
     if (!entity) {
-      addToast('Please select an entity')
+      addToast('Please select an entity.')
       setPending(false)
       return
     }
@@ -102,7 +102,7 @@ export default function AddActivity() {
       router.refresh()
     } catch (error) {
       console.error('Error adding activity:', error)
-      addToast('An error occurred while adding the activity')
+      addToast('An error occurred while adding the activity.')
     } finally {
       setPending(false)
     }

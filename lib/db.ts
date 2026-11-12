@@ -170,3 +170,13 @@ export const countActivities = async (userId: string) => {
   const db = await getDb()
   return db.collection('activities').countDocuments({ userId: new ObjectId(userId) })
 }
+
+// TODO: update activity status
+export const updateActivityStatus = async (activityId: string, status: 'NOT_VISITED' | 'VISITED') => {
+  if (!ObjectId.isValid(activityId)) return null
+
+  const db = await getDb()
+  const result = await db.collection('activities').updateOne({ _id: new ObjectId(activityId) }, { $set: { status, updatedAt: new Date() } })
+
+  return result.modifiedCount > 0
+}

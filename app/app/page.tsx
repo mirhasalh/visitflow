@@ -6,6 +6,7 @@ import LogOutForm from '@/components/LogOutForm'
 import VisitFlowLogo from '@/components/VisitFlowLogo'
 import Search from '@/components/icons/Search'
 import Add from '@/components/icons/material/Add'
+import Archive from '@/components/icons/material/Archive'
 import FilterList from '@/components/icons/material/FilterList'
 import Menu from '@/components/icons/material/Menu'
 import MoreVert from '@/components/icons/material/MoreVert'
@@ -14,9 +15,10 @@ import useActivitiesStore from '@/stores/useActivitiesStore'
 import { useActivityFiltersStore } from '@/stores/useActivityFiltersStore'
 import { useToastStore } from '@/stores/useToastStore'
 import useUserStore from '@/stores/useUserStore'
-import { formatDate } from '@/utils/stringFormatter'
+import { blurActiveElement } from '@/utils'
+import { formatDate, formatted } from '@/utils/stringFormatter'
 
-import { fetchActivities, fetchCountAvtivities, fetchSearchActivities } from './helpers'
+import { fetchActivities, fetchCountAvtivities, fetchSearchActivities, fetchUpdateActivityStatus } from './helpers'
 
 export default function App() {
   const { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore } = useApp()
@@ -54,19 +56,9 @@ export default function App() {
     setIsLoadingMore(false)
   }
 
-  const formatted = (iso: string) =>
-    new Intl.DateTimeFormat('en', {
-      dateStyle: 'full',
-      timeZone: 'Asia/Jakarta'
-    }).format(new Date(iso))
+  const openModal = () => modalRef.current?.showModal()
 
-  const openModal = () => {
-    modalRef.current?.showModal()
-  }
-
-  const closeModal = () => {
-    modalRef.current?.close()
-  }
+  const closeModal = () => modalRef.current?.close()
 
   const onSearch = async () => {
     await fetchSearchActivities({
@@ -82,6 +74,30 @@ export default function App() {
         closeModal()
       }
     })
+  }
+
+  const onArchive = (index: number) => {
+    // TODO: fetch archive activity
+    addToast(`[${index}] Under development.`)
+    blurActiveElement()
+  }
+
+  const onToggleStatus = async (activityId: string, status: string) => {
+    const newStatus = status === 'NOT_VISITED' ? 'VISITED' : 'NOT_VISITED'
+    await fetchUpdateActivityStatus(
+      activityId,
+      newStatus,
+      (error) => addToast(error),
+      (_) => {
+        const findIndex = activities.findIndex((activity) => activity._id === activityId)
+        if (findIndex !== -1) {
+          const updatedActivities = [...activities]
+          updatedActivities[findIndex].status = newStatus
+          setActivities(updatedActivities)
+        }
+      }
+    )
+    blurActiveElement()
   }
 
   useEffect(() => {
@@ -198,7 +214,7 @@ export default function App() {
                   No activities found.
                 </li>
               ) : (
-                activities.map((activity) => (
+                activities.map((activity, index) => (
                   <li key={activity._id} className="list-row rounded-none">
                     <div>
                       {activity.segment == 'B2G' ? (
@@ -226,13 +242,28 @@ export default function App() {
                       <div className="text-xs opacity-60">{`${activity.entityType}, ${activity.entityName}, ${activity.region}`}</div>
                       <small className="opacity-60">{activity.salesName}</small>
                     </div>
-                    <div className="flex gap-1">
+                    <div>
                       <button className={`btn-sm ${activity.status == 'NOT_VISITED' ? 'btn' : 'btn btn-success'}`}>
                         <span>{activity.status}</span>
                       </button>
-                      <button className="btn btn-sm btn-square">
-                        <MoreVert className="h-4 w-4" />
-                      </button>
+                      <div className="dropdown dropdown-bottom dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-sm btn-square m-1">
+                          <MoreVert className="h-4 w-4" />
+                        </div>
+                        <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                          <li>
+                            <button type="button" onClick={() => onToggleStatus(activity._id, activity.status)}>
+                              {`${activity.status == 'NOT_VISITED' ? 'Mark as VISITED' : 'Mark as NOT_VISITED'}`}
+                            </button>
+                          </li>
+                          <li>
+                            <button type="button" className="text-error" onClick={() => onArchive(index)}>
+                              <Archive className="h-4 w-4" />
+                              Archive
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </li>
                 ))
