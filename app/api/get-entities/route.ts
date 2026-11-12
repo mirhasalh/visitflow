@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET)
     const { payload } = await jwtVerify(token, secret)
     const entities = await getEntities(`${payload.userId}`, page, limit)
-    console.log('Entities', entities)
     return NextResponse.json({ entities }, { status: 200 })
   } catch (error) {
     console.error(error)

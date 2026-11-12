@@ -1,42 +1,53 @@
 'use client'
 
-import Menu from '@/components/icons/material/Menu'
-import Remove from '@/components/icons/material/Remove'
+import { useEffect } from 'react'
+
+import { useEntities } from '@/hooks/useEntities'
+import { useEntitiesStore } from '@/stores/useEntitiesStore'
+import { useToastStore } from '@/stores/useToastStore'
+import useUserStore from '@/stores/useUserStore'
 import LogOutForm from '@/components/LogOutForm'
 import VisitFlowLogo from '@/components/VisitFlowLogo'
-import { useToastStore } from '@/stores/useToastStore'
-import { useEntitiesStore } from '@/stores/useEntitiesStore'
-import { useEffect, useState } from 'react'
-import useUserStore from '@/stores/useUserStore'
+import Menu from '@/components/icons/material/Menu'
+import Remove from '@/components/icons/material/Remove'
+
+import { fetchCountEntities, fetchEntities } from './helpers'
 
 export default function Entities() {
+  const limit = 10
   const addToast = useToastStore((state) => state.addToast)
   const user = useUserStore((state) => state.user)
-  const [entitiesLoaded, setEntitiesLoaded] = useState(false)
   const { entities, setEntities } = useEntitiesStore()
+  const useEntitiesState = useEntities()
 
-  const getEntities = async () => {
-    const response = await fetch('/api/get-entities', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ page: 1, limit: 10 })
+  const onCountEntities = async () => {
+    await fetchCountEntities((error) => addToast(error)).then((count) => {
+      useEntitiesState.setEnd(Math.ceil(count / limit))
     })
+  }
 
-    if (response.ok) {
-      const data = await response.json()
-      setEntities(data.entities)
-    } else {
-      console.error('Failed to fetch entities')
-    }
-    setEntitiesLoaded(true)
+  const initEntities = async () => {
+    await fetchEntities(useEntitiesState.page, limit, (error) => addToast(error)).then((v) => {
+      setEntities(v)
+      useEntitiesState.setEntitiesLoaded(true)
+    })
   }
 
   const onOpenMenu = () => addToast('Under development.')
 
+  const onLoadMore = async () => {
+    useEntitiesState.setIsLoadingMore(true)
+    const nextPage = useEntitiesState.page + 1
+    await fetchEntities(nextPage, limit, (error) => addToast(error)).then((v) => {
+      setEntities([...entities, ...v])
+      useEntitiesState.setPage(nextPage)
+      useEntitiesState.setIsLoadingMore(false)
+    })
+  }
+
   useEffect(() => {
-    getEntities()
+    onCountEntities()
+    initEntities()
   }, [])
   return (
     <div>
@@ -80,7 +91,7 @@ export default function Entities() {
               </a>
             </div>
           </div>
-          {entitiesLoaded ? (
+          {useEntitiesState.entitiesLoaded ? (
             <ul className="list bg-base-100">
               {entities.length === 0 ? (
                 <li className="list-row rounded-none">
@@ -108,6 +119,15 @@ export default function Entities() {
                   </li>
                 ))
               )}
+              <li className="list-row rounded-none">
+                <div></div>
+                <div className="flex justify-center">
+                  <button className="btn" type="button" onClick={onLoadMore} disabled={useEntitiesState.page >= useEntitiesState.end || useEntitiesState.isLoadingMore}>
+                    {useEntitiesState.isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${useEntitiesState.page >= useEntitiesState.end ? 'All data loaded' : 'Load more'}`}</span>}
+                  </button>
+                </div>
+                <div></div>
+              </li>
             </ul>
           ) : (
             <ul className="list bg-base-100">

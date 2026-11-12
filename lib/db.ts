@@ -6,7 +6,6 @@ if (!process.env.MONGODB_URI) {
 
 const uri = process.env.MONGODB_URI
 
-// Reuse the client across hot reloads in dev
 const globalForMongo = globalThis as unknown as {
   _mongoClientPromise?: Promise<MongoClient>
 }
@@ -47,7 +46,7 @@ export const createUser = async (user: { name: string; email: string; password: 
     })
     return { id: result.insertedId.toString() }
   } catch (err: any) {
-    if (err?.code === 11000) return null // duplicate email
+    if (err?.code === 11000) return null
     throw err
   }
 }
@@ -75,13 +74,23 @@ export const addEntity = async (userId: string, entity: { name: string; type: st
     })
     return { id: result.insertedId.toString() }
   } catch (err: any) {
-    if (err?.code === 11000) return null // duplicate name for this user
+    if (err?.code === 11000) return null
     throw err
   }
 }
 
 // TODO: count total for pagination set up
 // const total = await db.collection("entities").countDocuments({ owner: userId });
+
+export const countEntities = async (userId: string) => {
+  const db = await getDb()
+  return db.collection('entities').countDocuments({ userId: new ObjectId(userId) })
+}
+
+// export const countActivities = async (userId: string) => {
+//   const db = await getDb()
+//   return db.collection('activities').countDocuments({ userId: new ObjectId(userId) })
+// }
 
 export const addActivity = async (userId: string, entity: App.Entity, visitDate: string, status: 'NOT_VISITED' | 'VISITED', salesName: string, updatedDate: string) => {
   const db = await getDb()
@@ -171,7 +180,6 @@ export const countActivities = async (userId: string) => {
   return db.collection('activities').countDocuments({ userId: new ObjectId(userId) })
 }
 
-// TODO: update activity status
 export const updateActivityStatus = async (activityId: string, status: 'NOT_VISITED' | 'VISITED') => {
   if (!ObjectId.isValid(activityId)) return null
 

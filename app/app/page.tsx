@@ -21,7 +21,7 @@ import { formatDate, formatted } from '@/utils/stringFormatter'
 import { fetchActivities, fetchCountAvtivities, fetchSearchActivities, fetchUpdateActivityStatus } from './helpers'
 
 export default function App() {
-  const { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore } = useApp()
+  const useAppState = useApp()
   const addToast = useToastStore((state) => state.addToast)
   const user = useUserStore((state) => state.user)
   const { activities, setActivities } = useActivitiesStore()
@@ -32,7 +32,7 @@ export default function App() {
     await fetchCountAvtivities(
       limit,
       (error) => addToast(error),
-      (value) => setEndPage(value)
+      (value) => useAppState.setEndPage(value)
     )
   }
 
@@ -42,29 +42,29 @@ export default function App() {
   }
 
   const initActivity = async () => {
-    const activities = await onGetActivities(page)
+    const activities = await onGetActivities(useAppState.page)
     setActivities(activities)
-    setActivitiesLoaded(true)
+    useAppState.setActivitiesLoaded(true)
   }
 
   const onLoadMore = async () => {
-    setIsLoadingMore(true)
-    const nextPage = page + 1
-    setPage(nextPage)
+    useAppState.setIsLoadingMore(true)
+    const nextPage = useAppState.page + 1
+    useAppState.setPage(nextPage)
     const moreActivities = await onGetActivities(nextPage)
     setActivities([...activities, ...moreActivities])
-    setIsLoadingMore(false)
+    useAppState.setIsLoadingMore(false)
   }
 
-  const openModal = () => modalRef.current?.showModal()
+  const openModal = () => useAppState.modalRef.current?.showModal()
 
-  const closeModal = () => modalRef.current?.close()
+  const closeModal = () => useAppState.modalRef.current?.close()
 
   const onSearch = async () => {
     await fetchSearchActivities({
       filters,
-      from,
-      to,
+      from: useAppState.from,
+      to: useAppState.to,
       onError: (error) => {
         addToast(error)
         closeModal()
@@ -102,14 +102,14 @@ export default function App() {
 
   useEffect(() => {
     const today = formatDate(new Date())
-    setFrom(today)
-    setTo(today)
+    useAppState.setFrom(today)
+    useAppState.setTo(today)
     onCountAvtivities()
     initActivity()
   }, [])
   return (
     <div>
-      <dialog ref={modalRef} className="modal">
+      <dialog ref={useAppState.modalRef} className="modal">
         <div className="modal-box">
           <fieldset className="fieldset w-full">
             <label className="input w-full">
@@ -122,7 +122,7 @@ export default function App() {
                   <label className="label" htmlFor="from">
                     From
                   </label>
-                  <input className="input" id="from" name="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+                  <input className="input" id="from" name="from" type="date" value={useAppState.from} onChange={(e) => useAppState.setFrom(e.target.value)} />
                 </fieldset>
               </div>
               <div className="flex-1">
@@ -130,7 +130,7 @@ export default function App() {
                   <label className="label" htmlFor="to">
                     To
                   </label>
-                  <input className="input" id="to" name="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+                  <input className="input" id="to" name="to" type="date" value={useAppState.to} onChange={(e) => useAppState.setTo(e.target.value)} />
                 </fieldset>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function App() {
               </div>
             </div>
           </div>
-          {activitiesLoaded ? (
+          {useAppState.activitiesLoaded ? (
             <ul className="list bg-base-100">
               {activities && activities.length == 0 ? (
                 <li className="list-row rounded-none">
@@ -271,8 +271,8 @@ export default function App() {
               <li className="list-row rounded-none">
                 <div></div>
                 <div className="flex justify-center">
-                  <button className="btn" type="button" onClick={onLoadMore} disabled={page >= endPage || isLoadingMore}>
-                    {isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${page >= endPage ? 'All data loaded' : 'Load more'}`}</span>}
+                  <button className="btn" type="button" onClick={onLoadMore} disabled={useAppState.page >= useAppState.endPage || useAppState.isLoadingMore}>
+                    {useAppState.isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${useAppState.page >= useAppState.endPage ? 'All data loaded' : 'Load more'}`}</span>}
                   </button>
                 </div>
                 <div></div>

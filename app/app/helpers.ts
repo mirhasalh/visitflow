@@ -59,14 +59,11 @@ export const fetchSearchActivities = async ({ filters, from, to, onError, onValu
 
     if (!res.ok) {
       const data = await res.json().catch(() => null)
-      // closeModal()
       onError(data?.error ?? 'Something went wrong.')
       return
     }
 
     const data = await res.json()
-    // setActivities(data.items)
-    // setActivitiesLoaded(true)
     onValue(data)
   } catch (error) {
     console.error('Error filtering activities:', error)
