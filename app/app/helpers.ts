@@ -1,7 +1,7 @@
 type OnError = (error: string) => void
 type OnValue = (value: number) => void
 
-export const fetchCountAvtivities = async (limit: number, onError: OnError, onValue: OnValue) => {
+export const fetchCountAvtivities = async (onError: OnError): Promise<number> => {
   try {
     const res = await fetch('/api/count-activities', {
       method: 'POST',
@@ -11,14 +11,15 @@ export const fetchCountAvtivities = async (limit: number, onError: OnError, onVa
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       onError(data?.error ?? 'Something went wrong.')
-      return
+      return 0
     }
 
     const data = await res.json()
-    onValue(Math.ceil(data.count / limit))
+    return data.count
   } catch (error) {
     console.error('Error fetching activities:', error)
     onError('Error fetching activities')
+    return 0
   }
 }
 

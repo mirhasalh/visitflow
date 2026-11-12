@@ -5,5 +5,6 @@ export function useEntities() {
   const [page, setPage] = useState(1)
   const [end, setEnd] = useState(10)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  return { entitiesLoaded, setEntitiesLoaded, page, setPage, end, setEnd, isLoadingMore, setIsLoadingMore }
+  const [count, setCount] = useState(0)
+  return { entitiesLoaded, setEntitiesLoaded, page, setPage, end, setEnd, isLoadingMore, setIsLoadingMore, count, setCount }
 }

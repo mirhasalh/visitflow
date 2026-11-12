@@ -29,11 +29,10 @@ export default function App() {
   const limit = 10
 
   const onCountAvtivities = async () => {
-    await fetchCountAvtivities(
-      limit,
-      (error) => addToast(error),
-      (value) => useAppState.setEndPage(value)
-    )
+    await fetchCountAvtivities((error) => addToast(error)).then((v) => {
+      useAppState.setCount(v)
+      useAppState.setEndPage(Math.ceil(v / limit))
+    })
   }
 
   const onGetActivities = async (page: number): Promise<App.Activity[]> => {
@@ -105,7 +104,7 @@ export default function App() {
     useAppState.setFrom(today)
     useAppState.setTo(today)
     onCountAvtivities()
-    initActivity()
+    if (activities.length == 0) initActivity()
   }, [])
   return (
     <div>
@@ -270,7 +269,7 @@ export default function App() {
               )}
               <li className="list-row rounded-none">
                 <div></div>
-                <div className="flex justify-center">
+                <div className={`${useAppState.count > limit ? 'flex justify-center' : 'hidden'}`}>
                   <button className="btn" type="button" onClick={onLoadMore} disabled={useAppState.page >= useAppState.endPage || useAppState.isLoadingMore}>
                     {useAppState.isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${useAppState.page >= useAppState.endPage ? 'All data loaded' : 'Load more'}`}</span>}
                   </button>

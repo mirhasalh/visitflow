@@ -8,5 +8,6 @@ export function useApp() {
   const [page, setPage] = useState(1)
   const [endPage, setEndPage] = useState(10)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  return { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore }
+  const [count, setCount] = useState(0)
+  return { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore, count, setCount }
 }

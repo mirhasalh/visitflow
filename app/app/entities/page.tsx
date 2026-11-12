@@ -22,6 +22,7 @@ export default function Entities() {
 
   const onCountEntities = async () => {
     await fetchCountEntities((error) => addToast(error)).then((count) => {
+      useEntitiesState.setCount(count)
       useEntitiesState.setEnd(Math.ceil(count / limit))
     })
   }
@@ -47,7 +48,7 @@ export default function Entities() {
 
   useEffect(() => {
     onCountEntities()
-    initEntities()
+    if (entities.length == 0) initEntities()
   }, [])
   return (
     <div>
@@ -121,7 +122,7 @@ export default function Entities() {
               )}
               <li className="list-row rounded-none">
                 <div></div>
-                <div className="flex justify-center">
+                <div className={`${useEntitiesState.count > limit ? 'flex justify-center' : 'hidden'}`}>
                   <button className="btn" type="button" onClick={onLoadMore} disabled={useEntitiesState.page >= useEntitiesState.end || useEntitiesState.isLoadingMore}>
                     {useEntitiesState.isLoadingMore ? <span className="loading loading-spinner loading-sm"></span> : <span>{`${useEntitiesState.page >= useEntitiesState.end ? 'All data loaded' : 'Load more'}`}</span>}
                   </button>
