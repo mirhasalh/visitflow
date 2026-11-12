@@ -1,7 +1,7 @@
 type OnError = (error: string) => void
 type OnValue = (value: number) => void
 
-const fetchCountAvtivities = async (limit: number, onError: OnError, onValue: OnValue) => {
+export const fetchCountAvtivities = async (limit: number, onError: OnError, onValue: OnValue) => {
   try {
     const res = await fetch('/api/count-activities', {
       method: 'POST',
@@ -22,7 +22,7 @@ const fetchCountAvtivities = async (limit: number, onError: OnError, onValue: On
   }
 }
 
-const fetchActivities = async (page: number, limit: number, onError: OnError): Promise<App.Activity[]> => {
+export const fetchActivities = async (page: number, limit: number, onError: OnError): Promise<App.Activity[]> => {
   try {
     const res = await fetch('/api/get-activities', {
       method: 'POST',
@@ -53,7 +53,7 @@ type SearchArguments = {
   onValue: (value: any) => void
 }
 
-const fetchSearchActivities = async ({ filters, from, to, onError, onValue }: SearchArguments): Promise<void> => {
+export const fetchSearchActivities = async ({ filters, from, to, onError, onValue }: SearchArguments): Promise<void> => {
   try {
     const res = await fetch(`/api/filter-activities?segment=${filters.segment ?? ''}&status=${filters.status ?? ''}&from=${from}&to=${to}&search=${filters.search ?? ''}&page=1&limit=10`)
 

@@ -1,18 +1,22 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useApp } from '@/hooks/useApp'
+
+import LogOutForm from '@/components/LogOutForm'
+import VisitFlowLogo from '@/components/VisitFlowLogo'
+import Search from '@/components/icons/Search'
 import Add from '@/components/icons/material/Add'
 import FilterList from '@/components/icons/material/FilterList'
 import Menu from '@/components/icons/material/Menu'
-import LogOutForm from '@/components/LogOutForm'
-import VisitFlowLogo from '@/components/VisitFlowLogo'
+import MoreVert from '@/components/icons/material/MoreVert'
+import { useApp } from '@/hooks/useApp'
+import useActivitiesStore from '@/stores/useActivitiesStore'
+import { useActivityFiltersStore } from '@/stores/useActivityFiltersStore'
 import { useToastStore } from '@/stores/useToastStore'
 import useUserStore from '@/stores/useUserStore'
-import useActivitiesStore from '@/stores/useActivitiesStore'
-import MoreVert from '@/components/icons/material/MoreVert'
-import Search from '@/components/icons/Search'
-import { useActivityFiltersStore } from '@/stores/useActivityFiltersStore'
+import { formatDate } from '@/utils/stringFormatter'
+
+import { fetchActivities, fetchCountAvtivities, fetchSearchActivities } from './helpers'
 
 export default function App() {
   const { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore } = useApp()
