@@ -296,3 +296,38 @@ Cookie: session=<token>
 
 Invalid dates or a `from` date later than `to` return `400`. No session returns
 `401`; unexpected errors return `500`.
+
+### `POST /api/count-activities`
+
+Returns the number of activities belonging to the signed-in user. The session
+cookie identifies the user; no request body is needed.
+
+```http
+POST /api/count-activities
+Cookie: session=<token>
+```
+
+```json
+{ "count": 12 }
+```
+
+No session returns `401`; unexpected errors return `500`.
+
+### `POST /api/update-activity-status`
+
+Updates an activity's status using its ID and the requested status:
+
+```http
+POST /api/update-activity-status
+Content-Type: application/json
+
+{
+  "activityId": "507f1f77bcf86cd799439013",
+  "status": "VISITED"
+}
+```
+
+The handler returns `true` when an activity is modified, `false` when no
+activity is modified, and `null` for an invalid activity ID. Unexpected errors
+return `500` with `{ "error": "Failed to update activity status" }`. This
+handler does not verify a session cookie or validate the status at runtime.
