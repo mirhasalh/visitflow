@@ -1,4 +1,3 @@
-// app/api/login/route.ts
 import { NextResponse } from 'next/server'
 import { getUserByEmail } from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/utils/password'
