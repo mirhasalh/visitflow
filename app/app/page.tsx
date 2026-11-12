@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
+import { useApp } from '@/hooks/useApp'
 import Add from '@/components/icons/material/Add'
 import FilterList from '@/components/icons/material/FilterList'
 import Menu from '@/components/icons/material/Menu'
@@ -14,69 +15,28 @@ import Search from '@/components/icons/Search'
 import { useActivityFiltersStore } from '@/stores/useActivityFiltersStore'
 
 export default function App() {
-  const modalRef = useRef<HTMLDialogElement>(null)
+  const { modalRef, activitiesLoaded, setActivitiesLoaded, from, setFrom, to, setTo, page, setPage, endPage, setEndPage, isLoadingMore, setIsLoadingMore } = useApp()
   const addToast = useToastStore((state) => state.addToast)
   const user = useUserStore((state) => state.user)
-  const [activitiesLoaded, setActivitiesLoaded] = useState(false)
   const { activities, setActivities } = useActivitiesStore()
   const { filters, setFilters } = useActivityFiltersStore()
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
   const limit = 10
-  const [page, setPage] = useState(1)
-  const [endPage, setEndPage] = useState(10)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const onCountAvtivities = async () => {
-    try {
-      const res = await fetch('/api/count-activities', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        addToast(data?.error ?? 'Something went wrong.')
-        return
-      }
-
-      const data = await res.json()
-      setEndPage(Math.ceil(data.count / limit))
-    } catch (error) {
-      console.error('Error fetching activities:', error)
-      addToast('Error fetching activities')
-    }
+    await fetchCountAvtivities(
+      limit,
+      (error) => addToast(error),
+      (value) => setEndPage(value)
+    )
   }
 
-  const getActivities = async (page: number): Promise<App.Activity[]> => {
-    try {
-      const res = await fetch('/api/get-activities', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ page, limit })
-      })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        addToast(data?.error ?? 'Something went wrong.')
-        return []
-      }
-
-      const data = await res.json()
-      return data.activities
-    } catch (error) {
-      console.error('Error fetching activities:', error)
-      addToast('Error fetching activities')
-      return []
-    }
+  const onGetActivities = async (page: number): Promise<App.Activity[]> => {
+    const newActivities = await fetchActivities(page, limit, (error) => addToast(error))
+    return newActivities
   }
 
   const initActivity = async () => {
-    const activities = await getActivities(page)
+    const activities = await onGetActivities(page)
     setActivities(activities)
     setActivitiesLoaded(true)
   }
@@ -85,7 +45,7 @@ export default function App() {
     setIsLoadingMore(true)
     const nextPage = page + 1
     setPage(nextPage)
-    const moreActivities = await getActivities(nextPage)
+    const moreActivities = await onGetActivities(nextPage)
     setActivities([...activities, ...moreActivities])
     setIsLoadingMore(false)
   }
@@ -105,31 +65,19 @@ export default function App() {
   }
 
   const onSearch = async () => {
-    try {
-      const res = await fetch(`/api/filter-activities?segment=${filters.segment ?? ''}&status=${filters.status ?? ''}&from=${from}&to=${to}&search=${filters.search ?? ''}&page=1&limit=10`)
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
+    await fetchSearchActivities({
+      filters,
+      from,
+      to,
+      onError: (error) => {
+        addToast(error)
         closeModal()
-        addToast(data?.error ?? 'Something went wrong.')
-        return
+      },
+      onValue: (value) => {
+        setActivities(value.items)
+        closeModal()
       }
-
-      const data = await res.json()
-      setActivities(data.items)
-      setActivitiesLoaded(true)
-    } catch (error) {
-      console.error('Error filtering activities:', error)
-      addToast('Error filtering activities')
-    }
-    closeModal()
-  }
-
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
+    })
   }
 
   useEffect(() => {
