@@ -5,7 +5,6 @@ import { getUserById } from '@/lib/db'
 
 export async function GET() {
   const token = (await cookies()).get('session')?.value
-  console.log('token preview:', token?.slice(0, 20))
 
   if (!token) {
     return NextResponse.json({ error: 'No token' }, { status: 401 })
