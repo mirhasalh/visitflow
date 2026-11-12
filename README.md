@@ -170,6 +170,23 @@ Cookie: session=<token>
 The request expects positive `page` and `limit` values. No session returns
 `401`; unexpected errors return `500`.
 
+### `POST /api/count-entities`
+
+Returns the number of entities belonging to the signed-in user. The session
+cookie identifies the user; no request body is needed.
+
+```http
+POST /api/count-entities
+Cookie: session=<token>
+```
+
+```json
+{ "count": 8 }
+```
+
+No session returns `401` with `{ "error": "No token" }`; unexpected errors return
+`500` with `{ "error": "Internal server error" }`.
+
 ### `POST /api/add-entity`
 
 Creates an entity. All five fields are required:
